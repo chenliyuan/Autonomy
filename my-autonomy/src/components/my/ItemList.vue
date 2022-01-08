@@ -11,9 +11,14 @@
     <!-- {{ items }} -->
 
     <van-swipe-cell v-for="(item, index) in items" :key="index">
-      <!-- <template #left>
-        <van-button square type="primary" text="修改" @click="onClickUpdate" />
-      </template> -->
+      <template #left>
+        <van-button
+          square
+          type="primary"
+          text="修改"
+          @click="onClickUpdate(item)"
+        />
+      </template>
       <van-cell
         :title="item.main_item"
         :label="item.desc"
@@ -63,18 +68,25 @@
         >
       </van-form>
       <van-button v-if="isUpdate" round block type="info" @click="updateItem"
-        >提交</van-button
+        >修改</van-button
       >
     </van-popup>
   </div>
 </template>
 
 <script>
-import { getItems, deleteItem, updateItem, saveItem } from '@/axios/api';
+import {
+  getItem,
+  getItems,
+  deleteItem,
+  updateItem,
+  saveItem,
+} from '@/axios/api';
 
 export default {
   data() {
     return {
+      itemid: 1,
       items: [],
       item_name: '',
       item_subname: '',
@@ -109,13 +121,24 @@ export default {
         }
       });
     },
-    onClickUpdate() {
+    getItem() {
+      getItem({ itemid: this.itemid }).then((res) => {
+        this.item_name = res.main_item;
+        this.prioty = res.prioty;
+        this.isvalid = res.isvalid;
+        this.desc = res.desc;
+      });
+    },
+    onClickUpdate(item) {
+      console.log('item', item);
+      this.itemid = item.id;
       this.isUpdate = true;
       this.showAdd = true;
-      // this.getItems();
+      this.getItem();
     },
-    updateItem(item) {
+    updateItem() {
       var params = {
+        id: this.itemid,
         userID: 1,
         main_item: this.item_name,
         prioty: this.prioty,
@@ -126,6 +149,7 @@ export default {
         if (res.status == 200) {
           this.$notify({ type: 'success', message: '更新成功' });
           this.isUpdate = false;
+          this.showAdd = false;
           this.getItems();
         } else {
           this.$notify({ type: 'danger', message: '更新失败' });
@@ -133,16 +157,23 @@ export default {
       });
     },
     deleteItem(id) {
-      this.isUpdate = false;
-      deleteItem({ itemid: id }).then((res) => {
-        console.log(res, res.status == 200);
-        if (res.status == 200) {
-          this.$notify({ type: 'success', message: '删除成功' });
-          this.getItems();
-        } else {
-          this.$notify({ type: 'danger', message: '删除失败' });
-        }
-      });
+      this.$dialog
+        .confirm({ message: '确定删除吗', showCancelButton: true })
+        .then(() => {
+          this.isUpdate = false;
+          deleteItem({ itemid: id }).then((res) => {
+            console.log(res, res.status == 200);
+            if (res.status == 200) {
+              this.$notify({ type: 'success', message: '删除成功' });
+              this.getItems();
+            } else {
+              this.$notify({ type: 'danger', message: '删除失败' });
+            }
+          });
+        })
+        .catch(() => {
+          console.log('取消');
+        });
     },
     RouteTo(itemid) {
       this.$router.push({
@@ -153,7 +184,8 @@ export default {
       });
     },
     onClickLeft() {
-      this.$router.push({ name: 'my' });
+      // this.$router.push({ name: 'my' });
+      this.$router.go(-1);
     },
     onClickRight() {
       // this.$router.push({ name: 'additem' });

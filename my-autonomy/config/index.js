@@ -12,16 +12,23 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
             '/': {
-                // target: 'http://10.12.168.138:8000/', //后端接口地址
-                target: 'http://192.168.8.191:5000/',
-                // target: 'https://adu.i.shopee.io/', //后端接口地址
-
+                // target: 'http://localhost:5000/', //后端接口地址
+                target: 'http://nnsam.cn/',
                 changeOrigin: true, //是否允许跨越
                 pathRewrite: {
                     '^/': '/', //重写,
                 },
                 // secure: false
-            }
+            },
+          //   '/[^api]': {
+          //     // target: 'http://localhost:5000/', //后端接口地址
+          //     target: 'http://nnsam.cn:3000/',
+          //     changeOrigin: true, //是否允许跨越
+          //     pathRewrite: {
+          //         '^/': '/', //重写,
+          //     },
+          //     // secure: false
+          // }
 
     },
 
@@ -56,7 +63,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/',
+    assetsPublicPath: './',
 
 
     proxyTable: {

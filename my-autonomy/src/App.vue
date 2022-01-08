@@ -1,13 +1,20 @@
 <template>
   <div id="app">
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App'
-}
+  name: 'App',
+  mounted() {
+    console.log(this.$store.state.number);
+    // this.$store.commit('setNumber');
+    console.log(this.$store.state.number);
+
+    console.log(this.$store.getters);
+  },
+};
 </script>
 
 <style>

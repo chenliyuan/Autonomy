@@ -1,10 +1,24 @@
 <template>
-  <div>
-    <van-nav-bar title="数据总览" />
+  <div id="container">
+    <van-nav-bar
+      title="数据总览"
+      right-text="项目"
+      @click-right="onClickRight"
+    />
+    <van-dropdown-menu>
+      <van-dropdown-item
+        v-model="selectedValue"
+        :options="items"
+        @change="onChangeItem"
+        v-my-directive
+      />
+    </van-dropdown-menu>
+
     <van-cell-group
       v-for="(item, index) in itemsTree"
       :key="index"
       :title="item.main_item"
+      :border="false"
     >
       <template #title>
         <van-cell
@@ -14,25 +28,76 @@
         >
         </van-cell>
       </template>
-      <van-cell-group
-        :border="false"
-        v-for="(subitem, index) in item.children"
-        :key="index"
-        :title="subitem.sub_item"
-      >
-        <van-cell
-          v-for="(content, index) in subitem.contents"
+      <van-collapse v-model="activeNames">
+        <van-collapse-item
+          :name="subitem.sub_item"
+          v-for="(subitem, index) in item.children"
           :key="index"
-          :title="content.value"
-          :value="content.datetime"
-        ></van-cell>
-      </van-cell-group>
+        >
+          <template #title>
+            <van-cell
+              :title="'--' + subitem.sub_item + '--'"
+              title-class="subitem_class"
+              :border="false"
+            >
+              <template #right-icon>
+                <van-icon
+                  v-if="subitem.chart_type == 'line'"
+                  name="chart-trending-o"
+                  @click="routerTo(subitem)"
+                />
+                <van-icon
+                  v-else-if="subitem.chart_type == 'bar'"
+                  name="bar-chart-o"
+                  @click="routerTo(subitem)"
+                />
+                <van-icon v-else name="more-o" @click="routerTo(subitem)" />
+              </template>
+            </van-cell>
+          </template>
+
+          <van-cell
+            v-for="(content, index) in subitem.contents.slice(0, 10)"
+            :key="index"
+            :value="content.datetime"
+            :label="content.note"
+            :border="false"
+          >
+            <template #title>
+              <van-cell
+                v-if="content.value == 1"
+                title="PASS"
+                title-style="color:green;font-weight:600"
+              />
+              <van-cell
+                v-else-if="content.value == 0"
+                title="FREE"
+                title-style="color:red;font-weight:600"
+              />
+              <van-cell
+                v-else
+                :title="content.value + ' ' + subitem.unit"
+                title-style="font-weight:600"
+              />
+            </template>
+          </van-cell>
+          <!-- <el0-button>更多>></el0-button> -->
+        </van-collapse-item>
+      </van-collapse>
+      <!-- </van-cell-group> -->
     </van-cell-group>
+    <van-grid>
+      <van-grid-item
+        v-for="(item, index) in rankData"
+        :key="index"
+        :text="item.sub_item + ':' + item.count"
+      />
+    </van-grid>
   </div>
 </template>
 
 <script>
-import { getItemstree } from '@/axios/api';
+import { getItemstree, getItems, getRank } from '@/axios/api';
 
 export default {
   name: 'Overview',
@@ -40,50 +105,68 @@ export default {
     return {
       activeNames: ['1'],
       itemsTree: [],
-      // allnum:10
+      originTree: [],
+      items: [],
+      selectedValue: 0,
+      activeNames: [],
+      rankData: [],
     };
   },
   methods: {
+    onClickRight() {
+      this.$router.push({ name: 'itemlist' });
+    },
+    onChangeItem(value) {
+      // console.log(value);
+      this.itemsTree = this.originTree.filter(function (item) {
+        return item.id == value;
+      });
+      //  console.log(this.items);
+    },
     getItemstree() {
+      var userid = localStorage.getItem('userid');
       getItemstree({
-        // starttime: dateFormat('YYYY-mm-dd HH:MM', new Date()),
-        // endtime: endtime,
+        userID: userid,
       }).then((res) => {
-        this.itemsTree = res;
-        // for (let i = 0; i < this.items.length; i++) {
-        //   for (let j = 0; j < this.items[i].children.length; j++) {
-        //     if (this.items[i].children[j].contents.length == 0) {
-        //       this.items[i].children[j].contents = [
-        //         {
-        //           itemid: this.items[i].children[j].id,
-        //           value: 0,
-        //           datetime: dateFormat('YYYY-mm-dd HH:MM', new Date()),
-        //           updatetime: dateFormat('YYYY-mm-dd HH:MM', new Date()),
-        //           note: '',
-        //           img: '',
-        //         },
-        //       ];
-        //     }
-        //   }
-        // }
-        console.log('this.items:', this.items);
+        this.originTree = res;
+        this.itemsTree = this.originTree;
+        this.items = [{ value: 0, text: '全部' }];
+        res.map((item) => {
+          // console.log(item);
+          this.items.push({ value: item.id, text: item.main_item });
+        });
+
+        // res.map((item) => {
+        //   // if(item.recordtype==1){//若是实时类型的记录子项目
+        //   this.subitems.push({
+        //     id: item.id,
+        //     text: item.sub_item,
+        //   });
+        //   // }
+        // });
+
+        // console.log(this.items);
       });
     },
-    drawBar(id) {
-      // 基于准备好的dom，初始化echarts实例
-      var myChart = this.$echarts.init(document.getElementById(id));
-      // 绘制图表
-      myChart.setOption(this.$echartoptions);
+    routerTo(subitem) {
+      if (subitem.chart_type != '') {
+        this.$router.push({ name: 'chart', params: { subitem: subitem } });
+      } else {
+      }
+    },
+    getRank() {
+      getRank().then((res) => {
+        this.rankData = res;
+      });
     },
   },
   created() {
     this.getItemstree();
+    this.getRank();
+    // this.getItems();
+    this.$myMethod();
   },
-  mounted() {
-    for (let i = 1; i <= 10; i++) {
-      this.drawBar(i);
-    }
-  },
+  mounted() {},
 };
 </script>
 
@@ -92,6 +175,17 @@ export default {
 .item_class {
   /* background-color: darkmagenta; */
   font-size: 20px;
-  /* color: darkgrey; */
+  color: dimgrey;
+  /* font-weight: ; */
+}
+
+#container {
+  /* height: 2000;
+    overflow: auto; */
+  margin-bottom: 50px;
+}
+.subitem_class {
+  color: darkolivegreen;
+  font-size: 16px;
 }
 </style>

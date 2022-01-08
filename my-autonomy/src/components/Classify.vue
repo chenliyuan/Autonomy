@@ -34,10 +34,6 @@ export default {
       subItem: [],
       activeName: '',
       items: [
-        {
-          id: 2,
-          name: '阅读',
-        },
       ],
     };
   },

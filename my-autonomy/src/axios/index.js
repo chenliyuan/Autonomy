@@ -1,19 +1,30 @@
 import Axios from 'axios'
 import QS from 'qs';
+import router from '../router';
+
 // if (process.env.NODE_ENV == 'development') {
 //     Axios.defaults.baseURL = 'http://192.168.8.191:5000/';  
 //   } else  {
-//     // Axios.defaults.baseURL = 'https://adu.i.shopee.io/';
+//     Axios.defaults.baseURL = 'http://nnsam.cn:5000/';
 //   }
 
 
   // Axios.defaults.headers.post['Content-Type'] =
   // 'application/x-www-form-urlencoded';
 
-    Axios.defaults.headers.post['Content-Type'] =
-  'application/json';
+  //   Axios.defaults.headers.post['Content-Type'] =
+  // 'application/json';
 Axios.interceptors.request.use(
   config => {
+    let token = localStorage.getItem('token');
+    if (token == null || token == ''||token!='sdfghdswewxcd') 
+      {
+      router.push({
+        name: 'login'
+      }).catch(err => {
+        console.log('req输出报错', err);
+      });
+    }
     return config;
   },
   err => {
@@ -38,16 +49,19 @@ export default Axios;
     return new Promise((resolve, reject) => {
       Axios.get(url, {
           params: params,
-          paramsSerializer: function (params) {
-            return QS.stringify(params, {
-              arrayFormat: 'repeat'
-            });
-          },
+          // paramsSerializer: function (params) {
+          //   return QS.stringify(params, {
+          //     arrayFormat: 'repeat'
+          //   });
+          // },
         })
         .then(res => {
+          console.log("Axios.defaults.headers",Axios.defaults.headers);
           resolve(res.data);
+
         })
         .catch(err => {
+          console.log(url);
           reject(err);
         });
     });
@@ -58,10 +72,9 @@ export default Axios;
    * @param {Object} params [请求时携带的参数]
    */
   // export function post(url, params, q) {
+  //   console.log('qw',QS.stringify(params));
   //   return new Promise((resolve, reject) => {
-  //     Axios.post(url, QS.stringify(params, {
-  //         indices: false
-  //       }), q)
+  //     Axios.post(url, QS.stringify(params,{indices:false})
   //       .then(res => {
   //         resolve(res.data);
   //       })
@@ -96,19 +109,7 @@ export default Axios;
         });
     });
   }
-  export function put_with_suffix(url, suffix, params) {
-    return new Promise((resolve, reject) => {
-      Axios.put(url + suffix + '/', QS.stringify(params, {
-          indices: false
-        }))
-        .then(res => {
-          resolve(res.data);
-        })
-        .catch(err => {
-          reject(err.data);
-        });
-    });
-  }
+
   export function del(url, p) {
     return new Promise((resolve, reject) => {
       Axios.delete(url + '?'+QS.stringify(p,{indices:false}

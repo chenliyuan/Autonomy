@@ -1,6 +1,10 @@
  <template>
   <div>
-    <van-nav-bar title="实时记录" />
+    <van-nav-bar
+      title="实时记录"
+      right-text="项目"
+      @click-right="onClickRight"
+    />
     <van-form @submit="onSubmit">
       <van-field
         readonly
@@ -43,7 +47,30 @@
           @confirm="onConfirmSubItem"
         />
       </van-popup>
-      <van-field v-model="value" label="值" />
+      <van-field v-if="isValue" v-model="value" label="值" :clearable="true" />
+      <!-- <van-cell title="值">
+        <template #right-icon>
+          <van-switch
+            v-model="value"
+            v-if="!isValue"
+            size="24"
+            :active-value="1"
+            :inactive-value="0"
+          />
+        </template>
+      </van-cell> -->
+
+      <van-field  label="值"  v-if="!isValue" 
+        ><template #input>
+          <van-switch
+            v-model="value"
+            v-if="!isValue"
+            size="24"
+            :active-value="1"
+            :inactive-value="0"
+          />
+        </template>
+      </van-field>
       <van-field
         readonly
         clickable
@@ -73,6 +100,7 @@
         label="备注"
         type="textarea"
         placeholder="备注可忽略"
+        :clearable="true"
       />
       <van-button round block type="info" native-type="submit">提交</van-button>
     </van-form>
@@ -86,19 +114,21 @@ export default {
   data() {
     return {
       items: [],
+      selectedItem: [],
       itemname: '',
       subitems: [],
-      subItemName: '',
+      subItemName: '喂奶',
       showItemPicker: false,
       showSubItemPicker: false,
       showDate: false,
       date: new Date(),
       minDate: new Date(2021, 0, 1),
-      maxDate: new Date(2021, 10, 1),
+      maxDate: new Date(2025, 10, 1),
       showtime: false,
       desc: '',
-      selectedItemid: 0,
+      selectedItemid: 3,
       value: 0,
+      isValue: true, //是否是布尔类型，布尔类型显示为开关
     };
   },
   computed: {
@@ -106,34 +136,47 @@ export default {
       return dateFormat('YYYY-mm-dd HH:MM', new Date(this.date));
     },
   },
-  methods: {
-    formatter(type, val) {
-      console.log(type, val);
+  watch: {
+    itemname(newv, oldv) {
+      console.log(newv, 'ild:' + oldv, this.selectedItem);
+      if (oldv == '') {
+        this.getSubitems();
+      }
     },
-    onConfirmItem(item, index) {
-      console.log(dateFormat('YYYY-mm-dd HH:MM', new Date()));
-      //index前后选中序列号号
-      this.itemname = item.text;
+  },
+  methods: {
+    onClickRight() {
+      this.$router.push({ name: 'itemlist' });
+    },
+    getSubitems() {
       getSubitems({
-        itemid: item.id,
+        itemid: this.selectedItem.id,
       }).then((res) => {
+        this.subitems = [];
         res.map((item) => {
-          // if(item.recordtype==1){//若是实时类型的记录子项目
           this.subitems.push({
             id: item.id,
             text: item.sub_item,
+            unit: item.unit,
           });
-          // }
         });
       });
+    },
+    onConfirmItem(item, index) {
+      //index前后选中序列号号
+      this.selectedItem = item;
+      this.itemname = item.text;
+      this.getSubitems();
       //   this.unit = this.items[index[0]].children[index[1]].unit;
       //   this.subitemid = this.items[index[0]].children[index[1]].id;
       this.showItemPicker = false;
     },
     onConfirmSubItem(item) {
+      console.log(item);
       this.subItemName = item.text;
       this.selectedItemid = item.id;
       this.showSubItemPicker = false;
+      this.isValue = Number(Boolean(item.unit));
     },
     onConfirmTime(item, index) {
       console.log(item, index);
@@ -146,22 +189,25 @@ export default {
         value: Number(this.value),
         datetime: this.datetime,
         updatetime: dateFormat('YYYY-mm-dd HH:MM', new Date()),
-        note: '',
+        note: this.desc,
         img: '',
       };
       saveData(params).then((res) => {
         console.log(res);
         if (res.status == 200) {
-          this.$notify({ type: 'success', message: '保存成功' });
-          this.$router.go(-1);
+          this.$toast({ type: 'success', message: '保存成功' });
+          this.$router.push({ name: 'overview' });
         } else {
-          this.$notify({ type: 'danger', message: '保存失败' });
+          this.$toast({ type: 'danger', message: '保存失败' });
         }
       });
     },
   },
   created() {
-    getItems().then((res) => {
+    var userid = localStorage.getItem('userid');
+    getItems({ userID: userid }).then((res) => {
+      this.itemname = res[0].main_item; //默认取第一个主项目
+      this.selectedItem = res[0];
       res.map((item) => {
         this.items.push({
           id: item.id,
