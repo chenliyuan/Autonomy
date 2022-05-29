@@ -61,4 +61,26 @@ function timeFn(dateBegin,dateEnd) {//di作为一个变量传进来
     ,hours+"计算出小时数",minutes+"计算相差分钟数",seconds+"计算相差秒数");
     }
 
-export {dateFormat,dateFormatSimple,timeFn}
+    function monDiff(startTime,endTime){
+        startTime=new Date(startTime);
+        console.log(startTime,endTime)
+        var date2Mon;
+        var dayDiff;
+        var startDate=startTime.getDate()+startTime.getHours()/24+startTime.getMinutes()/24/60;
+        var endDate=endTime.getDate()+endTime.getHours()/24+endTime.getMinutes()/24/60;
+        if(endDate>=startDate){
+            date2Mon=0;
+            dayDiff=endDate-startDate;
+        }else{
+            date2Mon=-1;
+            if(endTime.getMonth()>1){
+                dayDiff=new Date(endTime.getFullYear(),endTime.getMonth()-1,0).getDate()+endDate-startDate;//上个月补齐减去，获取天数
+            }else{
+                dayDiff=new Date(endTime.getFullYear()-1,12,0).getDate()+endDate-startDate;//去年上月补齐减去，获取天数
+            }
+            
+        }
+        var result=(endTime.getFullYear()-startTime.getFullYear())*12+endTime.getMonth()-startTime.getMonth()+date2Mon+'个月'+parseInt(dayDiff)+'天';
+        return result;
+}
+export {dateFormat,dateFormatSimple,timeFn,monDiff}

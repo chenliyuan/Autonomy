@@ -5,6 +5,7 @@
       right-text="项目"
       @click-right="onClickRight"
     />
+
     <van-dropdown-menu>
       <van-dropdown-item
         v-model="selectedValue"
@@ -13,7 +14,7 @@
         v-my-directive
       />
     </van-dropdown-menu>
-
+    <div id="myChart" :style="{ width: '400px', height: '300px' }"></div>
     <van-cell-group
       v-for="(item, index) in itemsTree"
       :key="index"
@@ -86,52 +87,62 @@
       </van-collapse>
       <!-- </van-cell-group> -->
     </van-cell-group>
-    <van-grid>
+    <!-- <van-grid>
       <van-grid-item
         v-for="(item, index) in rankData"
         :key="index"
         :text="item.sub_item + ':' + item.count"
       />
-    </van-grid>
+    </van-grid> -->
   </div>
 </template>
 
 <script>
-import { getItemstree, getItems, getRank } from '@/axios/api';
+import { getItemstree, getItems, getRank } from "@/axios/api";
+import { dateFormat } from "@/assets/comm";
 
 export default {
-  name: 'Overview',
+  name: "Overview",
   data() {
     return {
-      activeNames: ['1'],
+      activeNames: ["1"],
       itemsTree: [],
       originTree: [],
-      items: [],
+      items: [{value:0,text:'全部'}],
       selectedValue: 0,
       activeNames: [],
       rankData: [],
+      WeightData: {}
     };
   },
   methods: {
     onClickRight() {
-      this.$router.push({ name: 'itemlist' });
+      this.$router.push({ name: "itemlist" });
     },
     onChangeItem(value) {
       // console.log(value);
-      this.itemsTree = this.originTree.filter(function (item) {
+      this.itemsTree = this.originTree.filter(function(item) {
         return item.id == value;
       });
       //  console.log(this.items);
     },
     getItemstree() {
-      var userid = localStorage.getItem('userid');
+      var userid = localStorage.getItem("userid");
       getItemstree({
-        userID: userid,
-      }).then((res) => {
+        userID: userid
+      }).then(res => {
         this.originTree = res;
         this.itemsTree = this.originTree;
-        this.items = [{ value: 0, text: '全部' }];
-        res.map((item) => {
+        this.WeightData = res
+          .filter(rt => {
+            return rt.id == 5;
+          })[0]
+          .children.filter(t => {
+            return t.id == 4;
+          })[0];
+        this.drawLine(this.WeightData); //绘图
+
+        res.map(item => {
           // console.log(item);
           this.items.push({ value: item.id, text: item.main_item });
         });
@@ -149,24 +160,81 @@ export default {
       });
     },
     routerTo(subitem) {
-      if (subitem.chart_type != '') {
-        this.$router.push({ name: 'chart', params: { subitem: subitem } });
+      if (subitem.chart_type != "") {
+        this.$router.push({ name: "chart", params: { subitem: subitem } });
       } else {
       }
     },
-    getRank() {
-      getRank().then((res) => {
-        this.rankData = res;
+    // getRank() {
+    //   getRank().then((res) => {
+    //     this.rankData = res;
+    //   });
+    // },
+    drawLine(subitem, index) {
+      console.log("subitem", subitem, index);
+      // 基于准备好的dom，初始化echarts实例
+      if (document.getElementById("myChart") == null) {
+        console.log("is null?");
+        return;
+      }
+      var myChart;
+
+      if (myChart != null && myChart != "" && myChart != undefined) {
+        console.log("已经存在");
+        // myChart.dispose();
+      }
+      myChart = this.$echarts.init(document.getElementById("myChart"));
+      myChart.clear();
+      // 绘制图表
+      myChart.setOption(this.$echartoptions.line_option);
+      var contents = subitem.contents.filter(item => {
+        return item.value > 0;
       });
-    },
+      var datetimes = contents
+        .map(data => dateFormat("mm.dd", new Date(data.datetime)))
+        .reverse();
+      var values = contents.reverse();
+      const myoption = {
+        title: {
+          text: subitem.sub_item
+        },
+        xAxis: {
+          // type: 'category',
+          data: datetimes
+        },
+        yAxis: [
+          {
+            name: subitem.unit,
+            minInterval: 1,
+            min: "dataMin"
+          }
+        ],
+        series: [
+          {
+            markLine: {
+              data: [
+                {
+                  type: "average",
+                  name: "平均值"
+                }
+              ]
+            },
+            data: values,
+            type: "line",
+            smooth: true
+          }
+        ]
+      };
+      myChart.setOption(myoption);
+    }
   },
   created() {
     this.getItemstree();
-    this.getRank();
+    // this.getRank();
     // this.getItems();
     this.$myMethod();
   },
-  mounted() {},
+  mounted() {}
 };
 </script>
 

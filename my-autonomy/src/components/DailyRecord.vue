@@ -1,4 +1,4 @@
- <template>
+<template>
   <div class="container">
     <van-nav-bar
       title="每日记录"
@@ -10,20 +10,36 @@
     <van-notice-bar wrapable :scrollable="false" :text="mottoList[1].content" />
     <van-notice-bar wrapable :scrollable="false" :text="mottoList[2].content" /> -->
     <div class="time">
-      宝宝出生距离现在<span style="padding: 10px; color: blue">{{
-        bornTime
-      }}</span>
+      宝宝已经<span style="padding: 10px; color: blue">{{
+        bornMonDiff
+      }}</span>了
     </div>
-    <div class="time">
-      距离上班时间<span style="padding: 10px; color: blue">{{ workTime }}</span>
+    <!-- {{ lastWeekData }} -->
+    <div>{{ "上周和本周情况" }}</div>
+    <div
+      v-for="(item, index) in lastWeekData"
+      :key="index"
+      class="grid-style"
+      :class="{ 'pass-style': item.result, 'fail-style': !item.result }"
+    >
+      <div>{{ item.text }}</div>
+      <div>{{ item.realValue }}/{{ item.threshold }}</div>
     </div>
-
+    <div
+      v-for="(line, i) in currWeekData"
+      :key="i+line.text"
+      class="grid-style"
+      :class="{ 'pass-style': line.result, 'fail-style': !line.result }"
+    >
+      <div>{{ line.text }}</div>
+      <div>{{ line.realValue }}/{{ line.threshold }}</div>
+    </div>
     <van-cell
       title="选择日期"
       is-link
       :value="selectedDate"
       @click="showDate = true"
-      :style="{ 'background': bkColor }"
+      :style="{ background: bkColor }"
     />
     <van-calendar
       v-model="showDate"
@@ -32,7 +48,7 @@
       :max-date="maxDate"
     />
 
-    <van-form @submit="onSubmit">
+    <van-form @submit="onSubmit" class="form">
       <van-cell-group
         v-for="(item, index) in items"
         :key="index"
@@ -50,7 +66,6 @@
         <div v-for="(subitem, index) in item.children" :key="index">
           <!-- {{ subitem.contents[0] }} -->
 
-
           <van-field
             v-if="subitem.unit != '' && subitem.recordtype == 1"
             v-model="subitem.contents[0].value"
@@ -58,10 +73,8 @@
             input-align="right"
             label-class="left_field"
             :clearable="true"
-  
           >
-           
-          <!-- <van-field
+            <!-- <van-field
             v-if="subitem.unit != '' && subitem.recordtype == 1"
             v-model="subitem.contents[0].value"
             :label="subitem.sub_item + '(' + subitem.unit + ')'"
@@ -97,11 +110,11 @@
           </van-cell>
         </div>
       </van-cell-group>
-      <!-- <div  class="submit"> -->
+      <div  class="submit">
       <van-button round block type="info" native-type="submit" class="submit"
         >提交</van-button
       >
-      <!-- </div> -->
+      </div>
     </van-form>
   </div>
 </template>
@@ -114,8 +127,10 @@ import {
   saveDataList,
   getMottoList,
   getDataList,
-} from '@/axios/api';
-import { dateFormat, timeFn } from '@/assets/comm';
+  getWeekData,
+  getCurrWeekData,
+} from "@/axios/api";
+import { dateFormat, timeFn ,monDiff} from "@/assets/comm";
 
 export default {
   data() {
@@ -123,35 +138,43 @@ export default {
       showDate: false,
       minDate: new Date(2020, 0, 1),
       maxDate: new Date(),
-      selectedDate: dateFormat('YYYY-mm-dd', new Date()),
+      selectedDate: dateFormat("YYYY-mm-dd", new Date()),
       active: 1,
       showCheckbox: false,
       showSelect: true,
-      // value: 0,
       showItemPicker: false,
       items: [
-        // { id: 5, text: '体重' },
-        // { id: 2, text: '健身' },
-        // { id: 3, text: '222' },
-        // { id: 4, text: '22221' },
-        // { id: 1, text: 'aaaa' },
       ],
-      unit: '次',
-      desc: '',
+      unit: "次",
+      desc: "",
 
       time: new Date(),
-      itemname: '',
+      itemname: "",
       subitemid: 0,
-      showtime: '',
-      bornTime: '',
-      workTime: '',
-      mottoList: [{ content: '' }, { content: '' }, { content: '' }],
-      bkColor:"AQUA",
+      showtime: "",
+      bornTime: "",
+      // workTime: "",
+      mottoList: [{ content: "" }, { content: "" }, { content: "" }],
+      bkColor: "AQUA",
+      lastWeekData: [
+      ],
+      currWeekData:[],
+      bornMonDiff:''
     };
   },
   methods: {
+    getWeekData() {
+      getWeekData().then((res) => {
+        this.lastWeekData = res;
+      });
+    },
+    getCurrWeekData() {
+      getCurrWeekData().then((res) => {
+        this.currWeekData = res;
+      });
+    },
     onClickRight() {
-      this.$router.push({ name: 'itemlist' });
+      this.$router.push({ name: "itemlist" });
     },
     getMottoList() {
       getMottoList().then((res) => {
@@ -161,7 +184,7 @@ export default {
       });
     },
     onSubmit() {
-      console.log('提交。。。。');
+      console.log("提交。。。。");
       //axios.post('saveData')
       const params = [];
       for (let i = 0; i < this.items.length; i++) {
@@ -193,9 +216,19 @@ export default {
       }
       saveDataList(params).then((res) => {
         if (res.status == 200) {
-          this.$toast({ type: 'success', message: '更新成功',icon:"https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic.51yuansu.com%2Fpic2%2Fcover%2F00%2F30%2F64%2F58108b1202d43_610.jpg&refer=http%3A%2F%2Fpic.51yuansu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1639969596&t=401efc3e877d475603faa124e1a1d5d7" });
+          this.$toast({
+            type: "success",
+            message: "更新成功",
+            icon:
+              "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic.51yuansu.com%2Fpic2%2Fcover%2F00%2F30%2F64%2F58108b1202d43_610.jpg&refer=http%3A%2F%2Fpic.51yuansu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1639969596&t=401efc3e877d475603faa124e1a1d5d7",
+          });
         } else {
-          this.$toast({ type: 'danger', message: '更新失败',icon:"https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fbpic.588ku.com%2Felement_origin_min_pic%2F01%2F02%2F87%2F3256f42c34c24d9.jpg&refer=http%3A%2F%2Fbpic.588ku.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1639969620&t=69690cad3014ca53071910282f8c7404" });
+          this.$toast({
+            type: "danger",
+            message: "更新失败",
+            icon:
+              "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fbpic.588ku.com%2Felement_origin_min_pic%2F01%2F02%2F87%2F3256f42c34c24d9.jpg&refer=http%3A%2F%2Fbpic.588ku.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1639969620&t=69690cad3014ca53071910282f8c7404",
+          });
         }
       });
     },
@@ -208,7 +241,7 @@ export default {
       });
     },
     getDayItemstree(startDate, endDate) {
-      var userid = localStorage.getItem('userid');
+      var userid = localStorage.getItem("userid");
       getItemstree({
         starttime: startDate, // dateFormat('YYYY-mm-dd', new Date()),
         endtime: endDate,
@@ -224,25 +257,25 @@ export default {
                   {
                     itemid: this.items[i].children[j].id,
                     value: 0,
-                    datetime: dateFormat('YYYY-mm-dd HH:MM', new Date()),
-                    updatetime: dateFormat('YYYY-mm-dd HH:MM', new Date()),
-                    note: '',
-                    img: '',
+                    datetime: dateFormat("YYYY-mm-dd HH:MM", new Date()),
+                    updatetime: dateFormat("YYYY-mm-dd HH:MM", new Date()),
+                    note: "",
+                    img: "",
                   },
                 ];
               }
             }
           }
         }
-        console.log('this.items:', this.items);
+        console.log("this.items:", this.items);
       });
     },
     onConfirm(date) {
       this.showDate = false;
-      this.selectedDate = dateFormat('YYYY-mm-dd', date);
-      let startDate = dateFormat('YYYY-mm-dd', date);
+      this.selectedDate = dateFormat("YYYY-mm-dd", date);
+      let startDate = dateFormat("YYYY-mm-dd", date);
       let endDate = dateFormat(
-        'YYYY-mm-dd',
+        "YYYY-mm-dd",
         new Date(date.setDate(date.getDate() + 1))
       );
       this.getDayItemstree(startDate, endDate);
@@ -259,15 +292,18 @@ export default {
     // },
   },
   created() {
-    let startDate = dateFormat('YYYY-mm-dd', new Date());
+    let startDate = dateFormat("YYYY-mm-dd", new Date());
     let endDate = dateFormat(
-      'YYYY-mm-dd',
+      "YYYY-mm-dd",
       new Date(new Date().setDate(new Date().getDate() + 1))
     );
     this.getDayItemstree(startDate, endDate);
     this.getMottoList();
-    this.bornTime = timeFn('2021-05-25 09:18:00', new Date());
-    this.workTime = timeFn(new Date(), '2021-12-20 19:00:00');
+    // this.getWeekData();
+    // this.getCurrWeekData();
+    this.bornTime = timeFn("2021-05-25 09:18:00", new Date());
+    // this.workTime = timeFn(new Date(), "2021-12-20 19:00:00");
+    this.bornMonDiff=monDiff("2021-05-25 09:18:00", new Date());
   },
 };
 </script>
@@ -277,9 +313,9 @@ export default {
   width: 60%;
 }
 .container {
-  /* height: 1000px; */
-
-  margin-bottom: 150px;
+  height: 1000px;
+  /* height: 100vh; */
+  /* margin-bottom: 250px; */
 }
 .title_class {
   /* background-color: blueviolet; */
@@ -290,8 +326,37 @@ export default {
 .time {
   margin: 20px 0px 20px 20px;
 }
-.submit{
-  position:fixed;
+.submit {
+  position: fixed;
   bottom: 60px;
+}
+
+.grid-style {
+  float: left;
+  /* display: inline; */
+  padding: 20px 0px;
+  font-size: 14px;
+  font-weight: 700;
+  /* height: 80%; */
+  width: 18%;
+  text-align: center;
+  border: solid black;
+  color: white;
+}
+.pass-style {
+  background-color: green;
+}
+.fail-style {
+  background-color: red;
+}
+
+/* .result-text{
+  color:white;
+
+} */
+
+.form{
+  padding-bottom:160px;
+  /* border:solid red; */
 }
 </style>

@@ -11,15 +11,14 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-            '/': {
-                // target: 'http://localhost:5000/', //后端接口地址
-                target: 'http://nnsam.cn/',
-                changeOrigin: true, //是否允许跨越
-                pathRewrite: {
-                    '^/': '/', //重写,
-                },
-                // secure: false
-            },
+            // '/': {
+            //     target: 'http://120.79.83.197:5000/', //后端接口地址
+            //     changeOrigin: true, //是否允许跨越
+            //     pathRewrite: {
+            //         '^/': '/', //重写,
+            //     },
+            //     secure: false
+            // },
           //   '/[^api]': {
           //     // target: 'http://localhost:5000/', //后端接口地址
           //     target: 'http://nnsam.cn:3000/',
@@ -33,7 +32,7 @@ module.exports = {
     },
 
     // Various Dev Server settings
-    host: 'localhost', // can be overwritten by process.env.HOST
+    host: '0.0.0.0', // can be overwritten by process.env.HOST
     port: 8080, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
     autoOpenBrowser: false,
     errorOverlay: true,
@@ -64,22 +63,6 @@ module.exports = {
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
     assetsPublicPath: './',
-
-
-    proxyTable: {
-      '/': {
-          // target: 'http://10.12.168.138:8000/', //后端接口地址
-          target: 'http://192.168.8.191:5000/',
-          // target: 'https://adu.i.shopee.io/', //后端接口地址
-
-          changeOrigin: true, //是否允许跨越
-          pathRewrite: {
-              '^/': '/', //重写,
-          },
-          // secure: false
-      }
-
-},
     /**
      * Source Maps
      */

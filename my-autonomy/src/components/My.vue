@@ -20,6 +20,7 @@
         ><div id="motto_class">{{ motto }}</div>
       </van-col>
     </van-row>
+    <!-- <van-button type="primary" @click="test">test</van-button> -->
     <van-cell-group
       :title="'待做 (' + planList.length + ')'"
       v-if="planList.length > 0"
@@ -43,14 +44,14 @@
         :title="'* ' + motto.content"
       />
     </van-cell-group>
-    <div class="account">
+    <!-- <div class="account">
       <van-button type="info" @click="turnPersonal" v-show="userId != 1"
         >切换到立元个人账号</van-button
       >
       <van-button type="primary" @click="turnComm" v-show="userId == 1"
         >切换到公共账号</van-button
       >
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -68,6 +69,9 @@ export default {
     };
   },
   methods: {
+    test(){
+      console.log(this.$data,this.$options.data())
+    },
     onClickLeft() {
       this.$router.push({ name: 'MottoList' });
     },

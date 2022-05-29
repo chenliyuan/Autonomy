@@ -14,10 +14,11 @@ import MottoList from '@/components/my/MottoList'
 import AddMotto from '@/components/my/AddMotto'
 import Login from '@/components/Login'
 Vue.use(Router)
-
+let mode=process.env.NODE_ENV=='development'?'hash':'history';
+let base=process.env.NODE_ENV=='development'?'/diary/':'/';
 export default new Router({
-  // base:'/diary/',
-  // mode:'history',
+  base:base,
+  mode:mode,
   routes: [
     {
       path: '/',

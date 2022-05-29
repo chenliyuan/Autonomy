@@ -2,7 +2,7 @@
 set password "Snowypml188"
 set timeout 10
 #上传dist文件
-spawn scp -r /Users/chenliyuan/Documents/autonomy/my-autonomy/dist root@nnsam.cn:/home
+spawn scp -r /Users/liyuanchen/Documents/workspace/Autonomy/my-autonomy/dist root@nnsam.cn:/home
 expect "password"
 send "${password}\n"
 expect "*#"
