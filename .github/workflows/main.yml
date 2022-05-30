@@ -31,9 +31,10 @@ jobs:
           echo Add other actions to build,
           echo test, and deploy your project.
           pwd
-          ls 
+          ls -al
           cd my-autonomy 
-          npm install
+          ls -al
+          npm run build
           mv dist/*   /home/test/
           
           
