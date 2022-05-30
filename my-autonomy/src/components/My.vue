@@ -44,14 +44,6 @@
         :title="'* ' + motto.content"
       />
     </van-cell-group>
-    <!-- <div class="account">
-      <van-button type="info" @click="turnPersonal" v-show="userId != 1"
-        >切换到立元个人账号</van-button
-      >
-      <van-button type="primary" @click="turnComm" v-show="userId == 1"
-        >切换到公共账号</van-button
-      >
-    </div> -->
   </div>
 </template>
 
