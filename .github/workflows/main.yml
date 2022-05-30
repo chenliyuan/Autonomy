@@ -38,7 +38,7 @@ jobs:
         pass: ${{ secrets.USER_PASS }}
         connect_timeout: 10s
         local: './my-autonomy/dist/*'
-        remote: /home/test/
+        remote: /home/diary/
         script:
           pwd
           ls -al
